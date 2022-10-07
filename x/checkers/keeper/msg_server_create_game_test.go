@@ -1,9 +1,14 @@
 package keeper_test
 
 import (
+	"context"
 	"testing"
 
+	keepertest "github.com/alice/checkers/testutil/keeper"
+	"github.com/alice/checkers/x/checkers"
+	"github.com/alice/checkers/x/checkers/keeper"
 	"github.com/alice/checkers/x/checkers/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,8 +33,14 @@ func getAddresses() (alice, bob, carol string) {
 	return
 }
 
+func setupMsgServerCreateGame(t testing.TB) (types.MsgServer, context.Context) {
+	k, ctx := keepertest.CheckersKeeper(t)
+	checkers.InitGenesis(ctx, *k, *types.DefaultGenesis())
+	return keeper.NewMsgServerImpl(*k), sdk.WrapSDKContext(ctx)
+}
+
 func TestCreateGame(t *testing.T) {
-	msgServer, context := setupMsgServer(t)
+	msgServer, context := setupMsgServerCreateGame(t)
 	alice, bob, carol := getAddresses()
 
 	createResponse, err := msgServer.CreateGame(context, &types.MsgCreateGame{
@@ -39,5 +50,5 @@ func TestCreateGame(t *testing.T) {
 	})
 
 	require.Nil(t, err)
-	require.EqualValues(t, types.MsgCreateGameResponse{}, *createResponse)
+	require.EqualValues(t, types.MsgCreateGameResponse{GameIndex: "1"}, *createResponse)
 }
